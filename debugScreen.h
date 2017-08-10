@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
-#include <inttypes.h>
+#include <stdint.h>
 
 #include <psp2/display.h>
 #include <psp2/kernel/sysmem.h>

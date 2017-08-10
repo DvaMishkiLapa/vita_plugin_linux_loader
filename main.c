@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 	mod_id = taiLoadStartKernelModuleForUser(MOD_PATH, &argg);
 
 	if (mod_id < 0)
-		printf("Error loading module: 0x%08X\n", mod_id);
+		printf("Error loading " MOD_PATH ": 0x%08X\n", mod_id);
 	else
 		printf("Module loaded with ID: 0x%08X\n", mod_id);
 
