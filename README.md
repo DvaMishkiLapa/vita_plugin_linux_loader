@@ -40,5 +40,6 @@ Thanks to everybody, who contributed to the launch of the Linux kernel on PS Vit
 - [Team Molecule](https://twitter.com/teammolecule) (formed by [Davee](https://twitter.com/DaveeFTW), Proxima, [xyz](https://twitter.com/pomfpomfpomf3), and [YifanLu](https://twitter.com/yifanlu));
 - [TheFloW](https://twitter.com/theflow0)
 - [motoharu](https://github.com/motoharu-gosuto)
-- verybody at the [HENkaku](https://discord.gg/m7MwpKA) Discord channel;
+- everybody at the [HENkaku](https://discord.gg/m7MwpKA) Discord channel;
+- everybody who contributes to [wiki.henkaku.xyz](https://wiki.henkaku.xyz/) and helps reverse engineering the PSVita OS;
 - [CreepNT](https://github.com/CreepNT) for improvements to this app.
