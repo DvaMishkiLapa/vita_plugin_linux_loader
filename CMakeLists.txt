@@ -1,61 +1,58 @@
 cmake_minimum_required(VERSION 2.8)
 
-set(CMAKE_SYSTEM_NAME "Generic")
-set(CMAKE_C_COMPILER "arm-vita-eabi-gcc")
-set(CMAKE_CXX_COMPILER "arm-vita-eabi-g++")
+if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+  if(DEFINED ENV{VITASDK})
+    set(CMAKE_TOOLCHAIN_FILE "$ENV{VITASDK}/share/vita.toolchain.cmake" CACHE PATH "toolchain file")
+  else()
+    message(FATAL_ERROR "Please define VITASDK to point to your SDK path!")
+  endif()
+endif()
 
-project(plugin_loader)
-set(TITLE_ID "PLGINLDR0")
-set(TITLE_NAME "Plugin Loader")
+project(vita-linux-bootstrapper)
 
-set(CMAKE_C_FLAGS "-Wl,-q -Wall -O3 -std=gnu99")
-set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++11 -fno-rtti -fno-exceptions")
+include("$ENV{VITASDK}/share/vita.cmake" REQUIRED)
+
+# Display name (under bubble in LiveArea)
+set(VITA_APP_NAME "VitaLinux")
+
+set(VITA_TITLEID  "VITALINUX")
+
+set(VITA_VERSION  "01.01")
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d PARENTAL_LEVEL=1")
 
 include_directories(
 )
 
+# Add any additional library paths here
+# ${CMAKE_CURRENT_BINARY_DIR} lets you use any library currently being built
 link_directories(
-	${CMAKE_CURRENT_BINARY_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-if (NOT ${RELEASE})
-	add_definitions(-DENABLE_LOGGING)
-endif()
-
-add_executable(${PROJECT_NAME}.elf
-	main.c
-	debugScreenFont.c
+# Add all the files needed to compile here
+add_executable(${PROJECT_NAME}
+  main.c
+  debugScreenFont.c
 )
 
-target_link_libraries(${PROJECT_NAME}.elf
-	taihen_stub
-	SceDisplay_stub
-	SceCtrl_stub
+# Library to link to (drop the -l prefix). This will mostly be stubs.
+target_link_libraries(${PROJECT_NAME}
+  SceCtrl_stub # this line is only for demonstration. It's not needed as
+  taihen_stub  # the most common stubs are automatically included.
+  SceDisplay_stub   # This used by debugScreenPrintf()
 )
 
-add_custom_target(${PROJECT_NAME}.velf ALL
-	COMMAND vita-elf-create ${PROJECT_NAME}.elf ${PROJECT_NAME}.velf
+## Create Vita files
+vita_create_self(${PROJECT_NAME}.self ${PROJECT_NAME} UNSAFE)
+vita_create_vpk(${PROJECT_NAME}.vpk ${VITA_TITLEID} ${PROJECT_NAME}.self
+  VERSION ${VITA_VERSION}
+  NAME ${VITA_APP_NAME}
+  FILE sce_sys/icon0.png sce_sys/icon0.png
+  FILE sce_sys/livearea/contents/bg.png sce_sys/livearea/contents/bg.png
+  FILE sce_sys/livearea/contents/startup.png sce_sys/livearea/contents/startup.png
+  FILE sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
 )
-
-add_custom_target(eboot.bin ALL
-	COMMAND vita-make-fself ${PROJECT_NAME}.velf eboot.bin
-)
-
-add_custom_target(${PROJECT_NAME}.vpk ALL
-	COMMAND vita-mksfoex -s TITLE_ID=${TITLE_ID} "${TITLE_NAME}" param.sfo
-	COMMAND vita-pack-vpk -s param.sfo -b eboot.bin ${PROJECT_NAME}.vpk
-)
-
-add_custom_target(vpksend
-	COMMAND curl -T ${PROJECT_NAME}.vpk ftp://$(PSVITAIP):1337/ux0:/
-	DEPENDS ${PROJECT_NAME}.vpk
-)
-
-add_custom_target(send
-	COMMAND curl -T eboot.bin ftp://$(PSVITAIP):1337/ux0:/app/${TITLE_ID}/
-	DEPENDS eboot.bin
-)
-
-add_dependencies(${PROJECT_NAME}.velf ${PROJECT_NAME}.elf)
-add_dependencies(eboot.bin ${PROJECT_NAME}.velf)
-add_dependencies(${PROJECT_NAME}.vpk eboot.bin)
